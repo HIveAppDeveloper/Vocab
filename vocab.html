@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vocab Quiz</title>
+<style>
+  body { background: #121212; color: #f5f5f7; font-family: -apple-system, sans-serif; padding: 20px; max-width: 480px; margin: auto; }
+  .header { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px; color: #888; }
+  .card { background: #1e1e1e; border: 1px solid #333; border-radius: 14px; padding: 20px; text-align: center; margin-bottom: 20px; }
+  .word { font-size: 22px; font-weight: bold; margin-top: 5px; }
+  .btn { display: block; width: 100%; background: #1e1e1e; color: #f5f5f7; border: 1px solid #333; padding: 15px; border-radius: 10px; font-size: 15px; text-align: left; margin-bottom: 10px; cursor: pointer; }
+  .btn.correct { background: #065f46; border-color: #10b981; }
+  .btn.wrong { background: #7f1d1d; border-color: #ef4444; }
+  .next { background: #f5b82e; color: #000; font-weight: bold; text-align: center; display: none; margin-top: 15px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span id="progress">Loading...</span>
+  <span id="score">Score: 0/0</span>
+</div>
+
+<div class="card">
+  <div style="font-size:12px; color:#888; text-transform:uppercase;">Word</div>
+  <div class="word" id="prompt">...</div>
+</div>
+
+<div id="options"></div>
+<button class="btn next" id="nextBtn" onclick="nextQ()">Next Question →</button>
+
+<script>
+const data = [
+  ["Abate", "to diminish in force or intensity"],
+  ["Abut", "to touch, join, or share a common boundary"],
+  ["Ambivalence", "the state of having mixed feelings or contradictory ideas"],
+  ["Abound", "to be plentiful, prevalent, or overflowing with"],
+  ["Abridge", "to shorten or condense"],
+  ["Alleviate", "to make suffering or a problem less severe"],
+  ["Amass", "to accumulate, to gather"],
+  ["Analogous", "comparable in certain respects or similar"],
+  ["Anomalous", "deviating from the common order; irregular"],
+  ["Appraise", "to estimate the monetary value or worth"],
+  ["Attenuate", "to weaken or reduce in amount or force"],
+  ["Attrition", "a gradual reduction in numbers or strength"],
+  ["Augment", "to make better or larger by adding"],
+  ["Belie", "to fail to give a true notion; contradict"],
+  ["Capacious", "able to hold much; spacious or roomy"],
+  ["Capricious", "given to sudden, impulsive changes of mood"],
+  ["Circumspection", "caution, prudence, or vigilance"],
+  ["Conflate", "to bring together, blend, or merge into one"],
+  ["Conjecture", "an opinion formed on incomplete information"],
+  ["Contentious", "tending to argument or strife; quarrelsome"],
+  ["Copious", "large in quantity; abundant; plentiful"],
+  ["Corroborate", "to make more certain; confirm"],
+  ["Cursory", "hasty and superficial; without looking at details"],
+  ["Dearth", "a scarcity, shortage, or lack"],
+  ["Decisive", "settling an issue; producing a definite result"],
+  ["Decouple", "to separate, disconnect, or disengage"],
+  ["Delineate", "to describe or portray with precision"],
+  ["Denote", "to reveal or indicate explicitly"],
+  ["Detrimental", "tending to cause harm or damage"],
+  ["Discerning", "having or showing good judgment"],
+  ["Discrepancy", "a lack of agreement or consistency"],
+  ["Eclipse", "to surpass or diminish another's importance"],
+  ["Emanate", "to issue, originate, or flow from"],
+  ["Enumerate", "to count or list one by one"],
+  ["Epitome", "the ideal example or embodiment of something"],
+  ["Epitomize", "to be a perfect example of"],
+  ["Equivocal", "subject to multiple interpretations to mislead"],
+  ["Eschew", "to intentionally avoid or keep away from"],
+  ["Evince", "to display clearly; reveal"],
+  ["Exacerbate", "to make more violent or severe"],
+  ["Excise", "to remove surgically; to cut out"],
+  ["Exhaustive", "really comprehensive; examining everything"],
+  ["Expedite", "to make a process happen sooner; hasten"],
+  ["Exploit", "to make use of unfairly for advantage"],
+  ["Expound", "to set forth in a detailed statement"],
+  ["Extemporaneous", "done with little or no advance preparation"],
+  ["Facetious", "not meant to be taken seriously; joking"],
+  ["Foment", "to instigate or stir up bad sentiment"],
+  ["Harbinger", "a sign of something to happen in the future"],
+  ["Heterogeneity", "the quality of being diverse"],
+  ["Heterogeneous", "composed of unrelated elements"],
+  ["Iconoclasm", "attacking or destroying traditional institutions"],
+  ["Idiosyncratic", "peculiar to a specific individual"],
+  ["Imperious", "arrogant, domineering, and overbearing"],
+  ["Impervious", "not allowing entrance or passage; impenetrable"],
+  ["Impromptu", "done without planning or rehearsal"],
+  ["Impugn", "to criticize or attack as lacking integrity"],
+  ["Incongruous", "not in keeping or matching; out of place"],
+  ["Inconspicuous", "not obvious or easily noticeable"],
+  ["Induce", "to call forth or bring about by influence"],
+  ["Inexplicable", "unable to be explained"],
+  ["Insurmountable", "too hard to be overcome"],
+  ["Intercede", "to intervene on someone else's behalf"],
+  ["Irrefutable", "impossible to deny or disprove"],
+  ["Lambaste", "to violently attack verbally or physically"],
+  ["Manifest", "to exhibit or reveal plainly"],
+  ["Meticulous", "extremely careful about small details"],
+  ["Misconstrue", "to interpret wrongly; misunderstand"],
+  ["Multifaceted", "having many aspects"],
+  ["Myriad", "an indefinitely great number of things"],
+  ["Nominal", "in name only, but not in reality"],
+  ["Oscillate", "to move back and forth at regular speed"],
+  ["Outmoded", "old-fashioned or no longer in style"],
+  ["Partition", "to divide into parts or sections"],
+  ["Perceptible", "able to be noticed by the senses"],
+  ["Pernicious", "very harmful or destructive in a subtle way"],
+  ["Pervade", "to spread through; to permeate"],
+  ["Precede", "to go before or in front of"],
+  ["Preclude", "to make impossible; rule out in advance"],
+  ["Pretext", "a false reason given in justification"],
+  ["Prevail", "to prove more powerful or superior"],
+  ["Proponent", "a person who advocates a theory or project"],
+  ["Proxy", "someone acting as a substitute for another"],
+  ["Quintessential", "representing the ideal essence of something"],
+  ["Recapitulate", "to summarize the main points"],
+  ["Redundancy", "the state of being superfluous or repetitive"],
+  ["Refute", "to prove to be wrong or false; disprove"],
+  ["Reprisal", "an act of retaliation or redress"],
+  ["Rescind", "to void, repeal, or abolish"],
+  ["Sophist", "someone using clever, illogical arguments"],
+  ["Sporadic", "occurring in irregular or random instances"],
+  ["Stipulate", "to specify as a condition or requirement"],
+  ["Subdue", "to bring under control or restrain"],
+  ["Subdued", "muted, restrained, or quiet"],
+  ["Subordinate", "lower in rank or less important"],
+  ["Substantiate", "to provide evidence to prove true"],
+  ["Supersede", "to take priority over or supplant"],
+  ["Supplant", "to supersede by force or treachery"],
+  ["Surreptitious", "done stealthily or in secret"],
+  ["Synopsis", "a condensed statement or outline"],
+  ["Tenuous", "very weak or slight; insubstantial"],
+  ["Testament", "proof, tribute, or a covenant"],
+  ["Transpose", "to alter the sequence or order of"],
+  ["Ubiquitous", "existing everywhere at the same time"],
+  ["Undermine", "to subvert or weaken insidiously"],
+  ["Underscore", "to emphasize or draw attention to"],
+  ["Unequivocal", "leaving no doubt; clear and unambiguous"],
+  ["Unnerve", "to cause someone to lose confidence"],
+  ["Untenable", "indefensible or unable to be maintained"],
+  ["Vindicate", "to free from allegation or blame"]
+];
+
+let idx = 0, score = 0, total = 0, currentQ = null;
+data.sort(() => Math.random() - 0.5);
+
+function loadQ() {
+  if (idx >= data.length) { data.sort(() => Math.random() - 0.5); idx = 0; }
+  currentQ = data[idx];
+  document.getElementById("progress").textContent = `Card ${idx + 1} of ${data.length}`;
+  document.getElementById("prompt").textContent = currentQ[0];
+  document.getElementById("nextBtn").style.display = "none";
+  
+  let distractors = data.filter(x => x[0] !== currentQ[0]).sort(() => Math.random() - 0.5).slice(0, 3);
+  let options = [...distractors, currentQ].sort(() => Math.random() - 0.5);
+  
+  let box = document.getElementById("options");
+  box.innerHTML = "";
+  options.forEach(opt => {
+    let btn = document.createElement("button");
+    btn.className = "btn";
+    btn.textContent = opt[1];
+    btn.onclick = () => checkAns(btn, opt[0] === currentQ[0], box);
+    box.appendChild(btn);
+  });
+}
+
+function checkAns(selectedBtn, isCorrect, box) {
+  let buttons = box.querySelectorAll("button");
+  buttons.forEach(b => b.disabled = true);
+  total++;
+  
+  if (isCorrect) {
+    score++;
+    selectedBtn.classList.add("correct");
+  } else {
+    selectedBtn.classList.add("wrong");
+    buttons.forEach(b => {
+      if (b.textContent === currentQ[1]) b.classList.add("correct");
+    });
+  }
+  document.getElementById("score").textContent = `Score: ${score}/${total}`;
+  document.getElementById("nextBtn").style.display = "block";
+}
+
+function nextQ() {
+  idx++;
+  loadQ();
+}
+
+loadQ();
+</script>
+</body>
+</html>
